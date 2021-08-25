@@ -263,18 +263,18 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeToInclusive<usize>
     }
 }
 
-pub trait GetChecked<I>
+pub trait GetChecked<T>
 {
     #[inline]
-    fn get_checked<T>(&self, index: T) -> Result<&T::Output, Error>
-    where T: GetCheckedSlice<Self>
+    fn get_checked<I>(&self, index: I) -> Result<&I::Output, Error>
+    where I: GetCheckedSlice<Self>
     {
         index.get_checked(self)
     }
 
     #[inline]
-    fn get_checked_mut<T>(&mut self, index: T) -> Result<&mut T::Output, Error>
-    where T: GetCheckedSlice<Self>
+    fn get_checked_mut<I>(&mut self, index: I) -> Result<&mut I::Output, Error>
+    where I: GetCheckedSlice<Self>
     {
         index.get_checked_mut(self)
     }
