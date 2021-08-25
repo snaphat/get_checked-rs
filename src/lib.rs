@@ -44,7 +44,7 @@ impl<T> GetCheckedSlice<[T]> for usize
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut T, Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut T, Error>
     {
         // SAFETY: `self` is checked to be in bounds.
         if self < slice.len()
@@ -110,7 +110,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeTo<usize>
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
         (0..self.end).get_checked_mut(slice)
     }
@@ -127,7 +127,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeFrom<usize>
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
         (self.start..slice.len()).get_checked_mut(slice)
     }
@@ -144,7 +144,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeFull
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
         Ok(slice)
     }
@@ -190,7 +190,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
         if *self.end() == usize::MAX
         {
@@ -236,7 +236,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeToInclusive<usize>
     }
 
     #[inline]
-    fn get_checked_mut(mut self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
         (0..=self.end).get_checked_mut(slice)
     }
