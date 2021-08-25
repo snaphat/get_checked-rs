@@ -212,7 +212,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
 
         match slice
         {
-            | _ if start > end => Err(Error::SliceStartIndexLenError(start, end))?,
+            | _ if start > end => Err(Error::SliceIndexOrderError(start, end))?,
             | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
             | _ => Ok(unsafe { &*slice.get_unchecked(self) }),
         }
@@ -239,7 +239,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
 
         match slice
         {
-            | _ if start > end => Err(Error::SliceStartIndexLenError(start, end))?,
+            | _ if start > end => Err(Error::SliceIndexOrderError(start, end))?,
             | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
             | _ => Ok(unsafe { &mut *slice.get_unchecked_mut(self) }),
         }
@@ -491,6 +491,18 @@ mod test
     }
 
     #[test]
+    fn immut_range_slice_inclusive_error()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(17..=4).unwrap_err();
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
+    }
+
+    #[test]
     fn immut_range_overflow_error()
     {
         let bytes = vec![
@@ -670,7 +682,7 @@ mod test
     }
 
     #[test]
-    fn mut_range_from_oob_error()
+    fn mut_range_from_error()
     {
         let mut bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -714,6 +726,18 @@ mod test
         ];
 
         let err = bytes.get_checked_mut(17..5).unwrap_err();
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
+    }
+
+    #[test]
+    fn mut_range_slice_inclusive_error()
+    {
+        let mut bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked_mut(17..=4).unwrap_err();
         assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
     }
 
