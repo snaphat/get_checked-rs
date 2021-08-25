@@ -4,7 +4,7 @@ mod error;
 use error::Error;
 
 #[cfg(test)]
-mod test;
+mod tests;
 
 pub trait GetCheckedSlice<T: ?Sized>
 {
