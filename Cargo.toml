@@ -1,5 +1,5 @@
 [package]
-name = "get_checked-rs"
+name = "get_checked"
 version = "0.1.0"
 authors = ["Aaron Myles Landwehr <snaphat@gmail.com>"]
 edition = "2018"
