@@ -290,7 +290,7 @@ mod test
     // Immutable tests:
 
     #[test]
-    fn index()
+    fn immut_index()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -302,7 +302,7 @@ mod test
     }
 
     #[test]
-    fn index_edge()
+    fn immut_index_edge()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -314,7 +314,7 @@ mod test
     }
 
     #[test]
-    fn index_error()
+    fn immut_index_error()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -349,6 +349,19 @@ mod test
         let ret = bytes.get_checked(2..5).unwrap();
         assert_eq!(ret.len(), 3);
         assert_eq!(ret, &bytes[2..5]);
+    }
+
+    #[test]
+    fn immut_range_full_exclusive_edge()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let ret = bytes.get_checked(2..16).unwrap();
+        assert_eq!(ret.len(), 14);
+        assert_eq!(ret, &bytes[2..16]);
     }
 
     #[test]
@@ -439,7 +452,20 @@ mod test
 
         let ret = bytes.get_checked(..=5).unwrap();
         assert_eq!(ret.len(), 6);
-        assert_eq!(ret, &bytes[..6]);
+        assert_eq!(ret, &bytes[..=5]);
+    }
+
+    #[test]
+    fn immut_range_full_inclusive_edge()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let ret = bytes.get_checked(2..=15).unwrap();
+        assert_eq!(ret.len(), 14);
+        assert_eq!(ret, &bytes[2..=15]);
     }
 
     #[test]
@@ -584,6 +610,21 @@ mod test
     }
 
     #[test]
+    fn mut_range_full_exclusive_edge()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let mut bytes2 = bytes.clone();
+
+        let ret = bytes2.get_checked_mut(2..16).unwrap();
+        assert_eq!(ret.len(), 14);
+        assert_eq!(ret, &bytes[2..16]);
+    }
+
+    #[test]
     fn mut_range_full_inclusive()
     {
         let bytes = vec![
@@ -595,6 +636,21 @@ mod test
         let ret = bytes2.get_checked_mut(2..=5).unwrap();
         assert_eq!(ret.len(), 4);
         assert_eq!(ret, &bytes[2..=5]);
+    }
+
+    #[test]
+    fn mut_range_full_inclusive_edge()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let mut bytes2 = bytes.clone();
+
+        let ret = bytes2.get_checked_mut(2..=15).unwrap();
+        assert_eq!(ret.len(), 14);
+        assert_eq!(ret, &bytes[2..=15]);
     }
 
     #[test]
@@ -678,7 +734,7 @@ mod test
 
         let ret = bytes2.get_checked_mut(..=5).unwrap();
         assert_eq!(ret.len(), 6);
-        assert_eq!(ret, &bytes[..6]);
+        assert_eq!(ret, &bytes[..=5]);
     }
 
     #[test]
