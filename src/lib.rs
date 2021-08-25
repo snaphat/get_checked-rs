@@ -53,11 +53,11 @@ impl<T> GetCheckedSlice<[T]> for ops::Range<usize>
         let len = slice.len();
         if self.start > self.end
         {
-            Err(Error::StartIndexError(self.start, self.end))
+            Err(Error::SliceIndexOrderError(self.start, self.end))
         }
         else if self.end > len
         {
-            Err(Error::EndIndexError(self.end, len))
+            Err(Error::SliceEndIndexLenError(self.end, len))
         }
         else
         {
@@ -71,11 +71,11 @@ impl<T> GetCheckedSlice<[T]> for ops::Range<usize>
         let len = slice.len();
         if self.start > self.end
         {
-            Err(Error::StartIndexError(self.start, self.end))
+            Err(Error::SliceIndexOrderError(self.start, self.end))
         }
         else if self.end > len
         {
-            Err(Error::EndIndexError(self.end, len))
+            Err(Error::SliceEndIndexLenError(self.end, len))
         }
         else
         {
@@ -91,13 +91,39 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeTo<usize>
     #[inline]
     fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
     {
-        (0..self.end).get_checked(slice)
+        let end = match self.end_bound()
+        {
+            | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
+            | Bound::Excluded(x) => *x,
+            | Bound::Unbounded => slice.len(),
+        };
+
+        let len = slice.len();
+
+        match slice
+        {
+            | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
+            | _ => Ok(unsafe { &*slice.get_unchecked(self) }),
+        }
     }
 
     #[inline]
     fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
-        (0..self.end).get_checked_mut(slice)
+        let end = match self.end_bound()
+        {
+            | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
+            | Bound::Excluded(x) => *x,
+            | Bound::Unbounded => slice.len(),
+        };
+
+        let len = slice.len();
+
+        match slice
+        {
+            | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
+            | _ => Ok(unsafe { &mut *slice.get_unchecked_mut(self) }),
+        }
     }
 }
 
@@ -108,13 +134,39 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeFrom<usize>
     #[inline]
     fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
     {
-        (self.start..slice.len()).get_checked(slice)
+        let start = match self.start_bound()
+        {
+            | Bound::Included(x) => *x,
+            | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
+            | Bound::Unbounded => 0,
+        };
+
+        let len = slice.len();
+
+        match slice
+        {
+            | _ if start > len => Err(Error::SliceStartIndexLenError(start, len))?,
+            | _ => Ok(unsafe { &*slice.get_unchecked(self) }),
+        }
     }
 
     #[inline]
     fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
-        (self.start..slice.len()).get_checked_mut(slice)
+        let start = match self.start_bound()
+        {
+            | Bound::Included(x) => *x,
+            | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
+            | Bound::Unbounded => 0,
+        };
+
+        let len = slice.len();
+
+        match slice
+        {
+            | _ if start > len => Err(Error::SliceStartIndexLenError(start, len))?,
+            | _ => Ok(unsafe { &mut *slice.get_unchecked_mut(self) }),
+        }
     }
 }
 
@@ -142,70 +194,54 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
     #[inline]
     fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
     {
-        if *self.end() == usize::MAX
+        let start = match self.start_bound()
         {
-            Err(Error::EndIndexOverflowError())
-        }
-        else
+            | Bound::Included(x) => *x,
+            | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
+            | Bound::Unbounded => 0,
+        };
+
+        let end = match self.end_bound()
         {
-            let start = match self.start_bound()
-            {
-                | Bound::Included(x) => *x,
-                | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
-                | Bound::Unbounded => 0,
-            };
+            | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
+            | Bound::Excluded(x) => *x,
+            | Bound::Unbounded => slice.len(),
+        };
 
-            let end = match self.end_bound()
-            {
-                | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
-                | Bound::Excluded(x) => *x,
-                | Bound::Unbounded => slice.len(),
-            };
+        let len = slice.len();
 
-            let len = slice.len();
-
-            match slice
-            {
-                | _ if start > end => Err(Error::StartIndexError(start, end))?,
-                | _ if start > len => Err(Error::StartIndexError(start, slice.len()))?,
-                | _ if end > len => Err(Error::EndIndexError(end, slice.len()))?,
-                | _ => Ok(unsafe { &*slice.get_unchecked(self) }),
-            }
+        match slice
+        {
+            | _ if start > end => Err(Error::SliceStartIndexLenError(start, end))?,
+            | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
+            | _ => Ok(unsafe { &*slice.get_unchecked(self) }),
         }
     }
 
     #[inline]
     fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
     {
-        if *self.end() == usize::MAX
+        let start = match self.start_bound()
         {
-            Err(Error::EndIndexOverflowError())
-        }
-        else
+            | Bound::Included(x) => *x,
+            | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
+            | Bound::Unbounded => 0,
+        };
+
+        let end = match self.end_bound()
         {
-            let start = match self.start_bound()
-            {
-                | Bound::Included(x) => *x,
-                | Bound::Excluded(x) => x.checked_add(1).ok_or(Error::StartIndexOverflowError())?,
-                | Bound::Unbounded => 0,
-            };
+            | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
+            | Bound::Excluded(x) => *x,
+            | Bound::Unbounded => slice.len(),
+        };
 
-            let end = match self.end_bound()
-            {
-                | Bound::Included(x) => x.checked_add(1).ok_or(Error::EndIndexOverflowError())?,
-                | Bound::Excluded(x) => *x,
-                | Bound::Unbounded => slice.len(),
-            };
+        let len = slice.len();
 
-            let len = slice.len();
-
-            match slice
-            {
-                | _ if start > end => Err(Error::StartIndexError(start, end))?,
-                | _ if start > len => Err(Error::StartIndexError(start, slice.len()))?,
-                | _ if end > len => Err(Error::EndIndexError(end, slice.len()))?,
-                | _ => Ok(unsafe { &mut *slice.get_unchecked_mut(self) }),
-            }
+        match slice
+        {
+            | _ if start > end => Err(Error::SliceStartIndexLenError(start, end))?,
+            | _ if end > len => Err(Error::SliceEndIndexLenError(end, len))?,
+            | _ => Ok(unsafe { &mut *slice.get_unchecked_mut(self) }),
         }
     }
 }
@@ -282,9 +318,9 @@ mod test
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
             0x3E, 0x1F,
         ];
-
         let err = bytes.get_checked(16).unwrap_err();
-        assert_eq!(err.to_string(), "index 16 out of range for slice of length 16");
+
+        assert_eq!(err.to_string(), "index out of bounds: the len is 16 but the index is 16");
     }
 
     #[test]
@@ -391,6 +427,18 @@ mod test
     }
 
     #[test]
+    fn range_from_oob_error2()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(..17).unwrap_err();
+        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
+    }
+
+    #[test]
     fn range_from_inverse_error()
     {
         let bytes = vec![
@@ -399,7 +447,7 @@ mod test
         ];
 
         let err = bytes.get_checked(17..5).unwrap_err();
-        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 5");
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
     }
 
     #[test]
@@ -476,7 +524,7 @@ mod test
         let mut bytes2 = bytes.clone();
 
         let err = bytes2.get_checked_mut(16).unwrap_err();
-        assert_eq!(err.to_string(), "index 16 out of range for slice of length 16");
+        assert_eq!(err.to_string(), "index out of bounds: the len is 16 but the index is 16");
     }
 
     #[test]
@@ -590,6 +638,18 @@ mod test
     }
 
     #[test]
+    fn mut_range_from_oob_error2()
+    {
+        let mut bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(..17).unwrap_err();
+        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
+    }
+
+    #[test]
     fn mut_range_from_inverse_error()
     {
         let mut bytes = vec![
@@ -598,7 +658,7 @@ mod test
         ];
 
         let err = bytes.get_checked_mut(17..5).unwrap_err();
-        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 5");
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
     }
 
     #[test]
