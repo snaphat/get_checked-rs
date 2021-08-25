@@ -1,7 +1,8 @@
 use std::ops::{self, Bound, RangeBounds};
 
 mod error;
-use error::Error;
+
+pub type Error = error::Error;
 
 #[cfg(test)]
 mod tests;
