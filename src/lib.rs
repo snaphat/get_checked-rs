@@ -378,6 +378,19 @@ mod test
     }
 
     #[test]
+    fn immut_range_full_inclusive_edge()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let ret = bytes.get_checked(2..=15).unwrap();
+        assert_eq!(ret.len(), 14);
+        assert_eq!(ret, &bytes[2..=15]);
+    }
+
+    #[test]
     fn immut_range_full_zero_exclusive()
     {
         let bytes = vec![
@@ -453,19 +466,6 @@ mod test
         let ret = bytes.get_checked(..=5).unwrap();
         assert_eq!(ret.len(), 6);
         assert_eq!(ret, &bytes[..=5]);
-    }
-
-    #[test]
-    fn immut_range_full_inclusive_edge()
-    {
-        let bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let ret = bytes.get_checked(2..=15).unwrap();
-        assert_eq!(ret.len(), 14);
-        assert_eq!(ret, &bytes[2..=15]);
     }
 
     #[test]
