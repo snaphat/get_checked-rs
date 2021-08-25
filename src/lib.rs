@@ -287,6 +287,8 @@ mod test
 {
     use super::{Error, GetChecked};
 
+    // Immutable tests:
+
     #[test]
     fn index()
     {
@@ -324,7 +326,7 @@ mod test
     }
 
     #[test]
-    fn range_full()
+    fn immut_range_full()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -337,7 +339,7 @@ mod test
     }
 
     #[test]
-    fn range_full_exclusive()
+    fn immut_range_full_exclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -350,7 +352,7 @@ mod test
     }
 
     #[test]
-    fn range_full_inclusive()
+    fn immut_range_full_inclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -363,7 +365,7 @@ mod test
     }
 
     #[test]
-    fn range_full_zero_exclusive()
+    fn immut_range_full_zero_exclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -376,7 +378,7 @@ mod test
     }
 
     #[test]
-    fn range_full_zero_inclusive()
+    fn immut_range_full_zero_inclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -389,7 +391,7 @@ mod test
     }
 
     #[test]
-    fn range_from()
+    fn immut_range_from()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -402,7 +404,7 @@ mod test
     }
 
     #[test]
-    fn range_from_zero()
+    fn immut_range_from_zero()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -415,43 +417,7 @@ mod test
     }
 
     #[test]
-    fn range_from_oob_error()
-    {
-        let bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked(17..).unwrap_err();
-        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 16");
-    }
-
-    #[test]
-    fn range_from_oob_error2()
-    {
-        let bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked(..17).unwrap_err();
-        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
-    }
-
-    #[test]
-    fn range_from_inverse_error()
-    {
-        let bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked(17..5).unwrap_err();
-        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
-    }
-
-    #[test]
-    fn range_to_exclusive()
+    fn immut_range_to_exclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -464,7 +430,7 @@ mod test
     }
 
     #[test]
-    fn range_to_inclusive()
+    fn immut_range_to_inclusive()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -477,7 +443,44 @@ mod test
     }
 
     #[test]
-    fn range_overflow_error()
+    fn immut_range_from_error()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(17..).unwrap_err();
+        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 16");
+    }
+
+    #[test]
+    fn immut_range_to_error()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(..17).unwrap_err();
+        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
+    }
+
+    #[test]
+    fn immut_range_from_slice_error()
+    {
+        let bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(17..5).unwrap_err();
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
+    }
+
+
+    #[test]
+    fn immut_range_overflow_error()
     {
         let bytes = vec![
             0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
@@ -487,6 +490,8 @@ mod test
         let err = bytes.get_checked(0..=usize::MAX).unwrap_err();
         assert_eq!(err.to_string(), Error::EndIndexOverflowError().to_string());
     }
+
+    // Mutable tests:
 
     #[test]
     fn mut_index()
@@ -625,41 +630,6 @@ mod test
         assert_eq!(ret, &bytes[16..]);
     }
 
-    #[test]
-    fn mut_range_from_oob_error()
-    {
-        let mut bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked_mut(17..).unwrap_err();
-        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 16");
-    }
-
-    #[test]
-    fn mut_range_from_oob_error2()
-    {
-        let mut bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked(..17).unwrap_err();
-        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
-    }
-
-    #[test]
-    fn mut_range_from_inverse_error()
-    {
-        let mut bytes = vec![
-            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
-            0x3E, 0x1F,
-        ];
-
-        let err = bytes.get_checked_mut(17..5).unwrap_err();
-        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
-    }
 
     #[test]
     fn mut_range_to_exclusive()
@@ -687,6 +657,42 @@ mod test
         let ret = bytes2.get_checked_mut(..=5).unwrap();
         assert_eq!(ret.len(), 6);
         assert_eq!(ret, &bytes[..6]);
+    }
+
+    #[test]
+    fn mut_range_from_oob_error()
+    {
+        let mut bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked_mut(17..).unwrap_err();
+        assert_eq!(err.to_string(), "range start index 17 out of range for slice of length 16");
+    }
+
+    #[test]
+    fn mut_range_to_oob_error()
+    {
+        let mut bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked(..17).unwrap_err();
+        assert_eq!(err.to_string(), "range end index 17 out of range for slice of length 16");
+    }
+
+    #[test]
+    fn mut_range_slice_error()
+    {
+        let mut bytes = vec![
+            0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5,
+            0x3E, 0x1F,
+        ];
+
+        let err = bytes.get_checked_mut(17..5).unwrap_err();
+        assert_eq!(err.to_string(), "slice index starts at 17 but ends at 5");
     }
 
     #[test]
