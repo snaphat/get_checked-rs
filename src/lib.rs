@@ -1,4 +1,23 @@
 #![cfg_attr(feature = "no_std", no_std)]
+//! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for `[T]`,
+//! [`usize`], [`Range`], [`RangeTo`], [`RangeFrom`], [`RangeFull`], [`RangeInclusive`], and
+//! [`RangeToInclusive`].
+//!
+//! These APIs provide similar functionality to [`get`] and [`get_mut`] but return a [`Result`]
+//! containing a reference to the element or a [`GetError`] describing the error if out of bounds.
+//!
+//! [`get_checked`]:      GetChecked::get_checked
+//! [`get_checked_mut`]:  GetChecked::get_checked_mut
+//! [`get_checked`]:      GetCheckedSliceIndex::get_checked
+//! [`get_checked_mut`]:  GetCheckedSliceIndex::get_checked_mut
+//! [`Range`]:            ops::Range
+//! [`RangeTo`]:          ops::RangeTo
+//! [`RangeFrom`]:        ops::RangeFrom
+//! [`RangeFull`]:        ops::RangeFull
+//! [`RangeInclusive`]:   ops::RangeInclusive
+//! [`RangeToInclusive`]: ops::RangeToInclusive
+//! [`get`]:              slice::get
+//! [`get_mut`]:          slice::get_mut
 
 use core::ops::{self, Bound, RangeBounds};
 
@@ -13,10 +32,18 @@ pub use error::GetError::{
 #[cfg(test)]
 mod tests;
 
-/// A helper trait used for adding [`get_checked`] and [`get_checked_mut`] indexing operations.
+/// A helper trait used for adding [`get_checked`] and [`get_checked_mut`] indexing operations to
+/// [`usize`], [`Range`], [`RangeTo`], [`RangeFrom`],
+/// [`RangeFull`], [`RangeInclusive`], and [`RangeToInclusive`].
 ///
-/// [`get_checked`]: GetCheckedSliceIndex::get_checked
-/// [`get_checked_mut`]: GetCheckedSliceIndex::get_checked_mut
+/// [`get_checked`]:      GetCheckedSliceIndex::get_checked
+/// [`get_checked_mut`]:  GetCheckedSliceIndex::get_checked_mut
+/// [`Range`]:            ops::Range
+/// [`RangeTo`]:          ops::RangeTo
+/// [`RangeFrom`]:        ops::RangeFrom
+/// [`RangeFull`]:        ops::RangeFull
+/// [`RangeInclusive`]:   ops::RangeInclusive
+/// [`RangeToInclusive`]: ops::RangeToInclusive
 pub trait GetCheckedSliceIndex<T: ?Sized>
 {
     /// The output type returned by methods.
@@ -284,10 +311,14 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeToInclusive<usize>
     }
 }
 
+/// Trait adding [`get_checked`] and [`get_checked_mut`] Indexing implementations for `[T]`.
+///
+/// [`get_checked`]: GetChecked::get_checked
+/// [`get_checked_mut`]: GetChecked::get_checked_mut
 pub trait GetChecked<T>
 {
-    /// Returns a [`Result`] containing a reference to an element or subslice depending on the type of
-    /// index.
+    /// Returns a [`Result`] containing a reference to an element or subslice depending on the type
+    /// of index.
     ///
     /// - If given a position, returns an [`Ok`] containing a reference to the element at that
     ///   position or [`Err`] containing a [`GetError`] if out of bounds.
@@ -312,13 +343,13 @@ pub trait GetChecked<T>
         index.get_checked(self)
     }
 
-    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending on the type of
-    /// index.
+    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending on the
+    /// type of index.
     ///
     /// - If given a position, returns an [`Ok`] containing a mutable reference to the element at that
     ///   position or [`Err`] containing a [`GetError`] if out of bounds.
-    /// - If given a range, returns an [`Ok`] containing the mutable subslice corresponding to that range,
-    ///   or [`Err`] containing a [`GetError`] if out of bounds.
+    /// - If given a range, returns an [`Ok`] containing the mutable subslice corresponding to that
+    ///   range, or [`Err`] containing a [`GetError`] if out of bounds.
     ///
     /// # Examples
     ///
