@@ -15,8 +15,15 @@ mod tests;
 
 pub trait GetCheckedSlice<T: ?Sized>
 {
+    /// The output type returned by methods.
     type Output: ?Sized;
+
+    /// Returns a [`Result`] to a shared reference to the output at this location, if in
+    /// bounds.
     fn get_checked(self, slice: &T) -> Result<&Self::Output, Error>;
+
+    /// Returns a [`Result`] to a mutable reference to the output at this location, if in
+    /// bounds.
     fn get_checked_mut(self, slice: &mut T) -> Result<&mut Self::Output, Error>;
 }
 
@@ -278,9 +285,9 @@ pub trait GetChecked<T>
     /// Returns a [`Result`] containing a reference to an element or subslice depending on the type of
     /// index.
     ///
-    /// - If given a position, returns a [`Result`] containing a reference to the element at that
+    /// - If given a position, returns an [`Ok`] containing a reference to the element at that
     ///   position or [`Err`] containing a [`GetError`] if out of bounds.
-    /// - If given a range, returns a [`Result`] containing the subslice corresponding to that range,
+    /// - If given a range, returns an [`Ok`] containing the subslice corresponding to that range,
     ///   or [`Err`] containing a [`GetError`] if out of bounds.
     ///
     /// # Examples
@@ -301,10 +308,13 @@ pub trait GetChecked<T>
         index.get_checked(self)
     }
 
-    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending on the
-    /// type of index (see [`get`]) or [`Err`] containing a [`GetError`] if the index is out of bounds.
+    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending on the type of
+    /// index.
     ///
-    /// [`get`]: slice::get
+    /// - If given a position, returns an [`Ok`] containing a mutable reference to the element at that
+    ///   position or [`Err`] containing a [`GetError`] if out of bounds.
+    /// - If given a range, returns an [`Ok`] containing the mutable subslice corresponding to that range,
+    ///   or [`Err`] containing a [`GetError`] if out of bounds.
     ///
     /// # Examples
     ///
