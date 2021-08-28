@@ -1,4 +1,5 @@
-use std::ops::{self, Bound, RangeBounds};
+#![no_std]
+use core::ops::{self, Bound, RangeBounds};
 
 mod error;
 
