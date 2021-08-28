@@ -1,4 +1,5 @@
 use core::fmt;
+
 use write as w;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -34,4 +35,8 @@ impl fmt::Display for Error
     }
 }
 
-impl core_error::Error for Error { }
+#[cfg(feature = "no_std")]
+impl core_error::Error for Error {}
+
+#[cfg(not(feature = "no_std"))]
+impl std::error::Error for Error {}
