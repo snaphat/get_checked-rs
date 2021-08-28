@@ -13,7 +13,11 @@ pub use error::GetError::{
 #[cfg(test)]
 mod tests;
 
-pub trait GetCheckedSlice<T: ?Sized>
+/// A helper trait used for adding [`get_checked`] and [`get_checked_mut`] indexing operations.
+///
+/// [`get_checked`]: GetCheckedSliceIndex::get_checked
+/// [`get_checked_mut`]: GetCheckedSliceIndex::get_checked_mut
+pub trait GetCheckedSliceIndex<T: ?Sized>
 {
     /// The output type returned by methods.
     type Output: ?Sized;
@@ -27,7 +31,7 @@ pub trait GetCheckedSlice<T: ?Sized>
     fn get_checked_mut(self, slice: &mut T) -> Result<&mut Self::Output, Error>;
 }
 
-impl<T> GetCheckedSlice<[T]> for usize
+impl<T> GetCheckedSliceIndex<[T]> for usize
 {
     type Output = T;
 
@@ -60,7 +64,7 @@ impl<T> GetCheckedSlice<[T]> for usize
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::Range<usize>
+impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
 {
     type Output = [T];
 
@@ -101,7 +105,7 @@ impl<T> GetCheckedSlice<[T]> for ops::Range<usize>
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::RangeTo<usize>
+impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
 {
     type Output = [T];
 
@@ -144,7 +148,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeTo<usize>
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::RangeFrom<usize>
+impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFrom<usize>
 {
     type Output = [T];
 
@@ -187,7 +191,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeFrom<usize>
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::RangeFull
+impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFull
 {
     type Output = [T];
 
@@ -204,7 +208,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeFull
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
+impl<T> GetCheckedSliceIndex<[T]> for ops::RangeInclusive<usize>
 {
     type Output = [T];
 
@@ -263,7 +267,7 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeInclusive<usize>
     }
 }
 
-impl<T> GetCheckedSlice<[T]> for ops::RangeToInclusive<usize>
+impl<T> GetCheckedSliceIndex<[T]> for ops::RangeToInclusive<usize>
 {
     type Output = [T];
 
@@ -303,7 +307,7 @@ pub trait GetChecked<T>
     /// ```
     #[inline]
     fn get_checked<I>(&self, index: I) -> Result<&I::Output, Error>
-    where I: GetCheckedSlice<Self>
+    where I: GetCheckedSliceIndex<Self>
     {
         index.get_checked(self)
     }
@@ -332,7 +336,7 @@ pub trait GetChecked<T>
     /// ```
     #[inline]
     fn get_checked_mut<I>(&mut self, index: I) -> Result<&mut I::Output, Error>
-    where I: GetCheckedSlice<Self>
+    where I: GetCheckedSliceIndex<Self>
     {
         index.get_checked_mut(self)
     }
