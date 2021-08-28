@@ -1,10 +1,21 @@
 #![cfg_attr(feature = "no_std", no_std)]
-//! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for `[T]`,
-//! [`usize`], [`Range`], [`RangeTo`], [`RangeFrom`], [`RangeFull`], [`RangeInclusive`], and
-//! [`RangeToInclusive`].
+//! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for:
+//! - `[T]`
+//! - [`usize`]
+//! - [`Range`]
+//! - [`RangeTo`]
+//! - [`RangeFrom`]
+//! - [`RangeFull`]
+//! - [`RangeInclusive`]
+//! - [`RangeToInclusive`]
 //!
-//! These APIs provide similar functionality to [`get`] and [`get_mut`] but return a [`Result`]
-//! containing a reference to the element or a [`GetError`] describing the error if out of bounds.
+//! These APIs provide similar functionality as [`get`] and [`get_mut`] but return a [`Result`]
+//! instead of an [`Option`].
+//!
+//! - If given a position, returns an [`Ok`] containing a reference to the element at that
+//!   position or [`Err`] containing a [`GetError`] describing the error if out of bounds.
+//! - If given a range, returns an [`Ok`] containing the subslice corresponding to that range,
+//!   or [`Err`] containing a [`GetError`] describing the error if out of bounds.
 //!
 //! [`get_checked`]:      GetChecked::get_checked
 //! [`get_checked_mut`]:  GetChecked::get_checked_mut
@@ -321,9 +332,9 @@ pub trait GetChecked<T>
     /// of index.
     ///
     /// - If given a position, returns an [`Ok`] containing a reference to the element at that
-    ///   position or [`Err`] containing a [`GetError`] if out of bounds.
-    /// - If given a range, returns an [`Ok`] containing the subslice corresponding to that range,
-    ///   or [`Err`] containing a [`GetError`] if out of bounds.
+    ///   position or [`Err`] containing a [`GetError`] describing the error if out of bounds.
+    /// - If given a range, returns an [`Ok`] describing the error containing the subslice
+    ///   corresponding to that range, or [`Err`] containing a [`GetError`] if out of bounds.
     ///
     /// # Examples
     ///
@@ -347,9 +358,9 @@ pub trait GetChecked<T>
     /// type of index.
     ///
     /// - If given a position, returns an [`Ok`] containing a mutable reference to the element at that
-    ///   position or [`Err`] containing a [`GetError`] if out of bounds.
+    ///   position or [`Err`] containing a [`GetError`] describing the error if out of bounds.
     /// - If given a range, returns an [`Ok`] containing the mutable subslice corresponding to that
-    ///   range, or [`Err`] containing a [`GetError`] if out of bounds.
+    ///   range, or [`Err`] containing a [`GetError`] describing the error if out of bounds.
     ///
     /// # Examples
     ///
