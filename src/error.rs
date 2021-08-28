@@ -33,3 +33,5 @@ impl fmt::Display for Error
         }
     }
 }
+
+impl core_error::Error for Error { }
