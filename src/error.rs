@@ -3,7 +3,7 @@ use core::fmt;
 use write as w;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Error
+pub enum GetError
 {
     IndexError(usize, usize),
     SliceIndexOrderError(usize, usize),
@@ -13,12 +13,12 @@ pub enum Error
     EndIndexOverflowError(),
 }
 
-use Error::{
+use GetError::{
     EndIndexOverflowError, IndexError, SliceEndIndexLenError, SliceIndexOrderError,
     SliceStartIndexLenError, StartIndexOverflowError,
 };
 
-impl fmt::Display for Error
+impl fmt::Display for GetError
 {
     #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
@@ -36,7 +36,7 @@ impl fmt::Display for Error
 }
 
 #[cfg(feature = "no_std")]
-impl core_error::Error for Error {}
+impl core_error::Error for GetError {}
 
 #[cfg(not(feature = "no_std"))]
-impl std::error::Error for Error {}
+impl std::error::Error for GetError {}

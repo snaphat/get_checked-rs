@@ -4,7 +4,8 @@ use core::ops::{self, Bound, RangeBounds};
 
 mod error;
 
-pub use error::Error::{
+pub type Error = GetError;
+pub use error::GetError::{
     self, EndIndexOverflowError, IndexError, SliceEndIndexLenError, SliceIndexOrderError,
     SliceStartIndexLenError, StartIndexOverflowError,
 };
@@ -274,6 +275,25 @@ impl<T> GetCheckedSlice<[T]> for ops::RangeToInclusive<usize>
 
 pub trait GetChecked<T>
 {
+    /// Returns a [`Result`] containing a reference to an element or subslice depending on the type of
+    /// index.
+    ///
+    /// - If given a position, returns a [`Result`] containing a reference to the element at that
+    ///   position or [`Err`] containing a [`GetError`] if out of bounds.
+    /// - If given a range, returns a [`Result`] containing the subslice corresponding to that range,
+    ///   or [`Err`] containing a [`GetError`] if out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use get_checked::GetChecked;
+    ///
+    /// let v = [10, 40, 30];
+    /// assert_eq!(Ok(&40), v.get_checked(1));
+    /// assert_eq!(Ok(&[10, 40][..]), v.get_checked(0..2));
+    /// assert!(v.get_checked(3).is_err());
+    /// assert!(v.get_checked(0..4).is_err());
+    /// ```
     #[inline]
     fn get_checked<I>(&self, index: I) -> Result<&I::Output, Error>
     where I: GetCheckedSlice<Self>
@@ -281,6 +301,25 @@ pub trait GetChecked<T>
         index.get_checked(self)
     }
 
+    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending on the
+    /// type of index (see [`get`]) or [`Err`] containing a [`GetError`] if the index is out of bounds.
+    ///
+    /// [`get`]: slice::get
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use get_checked::GetChecked;
+    ///
+    /// let x = &mut [0, 1, 2];
+    ///
+    /// if let Ok(elem) = x.get_checked_mut(1)
+    /// {
+    ///     *elem = 42;
+    /// }
+    /// assert_eq!(x, &[0, 42, 2]);
+    /// assert!(x.get_checked_mut(3).is_err());
+    /// ```
     #[inline]
     fn get_checked_mut<I>(&mut self, index: I) -> Result<&mut I::Output, Error>
     where I: GetCheckedSlice<Self>
