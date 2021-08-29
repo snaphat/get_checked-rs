@@ -2,26 +2,68 @@ use core::fmt;
 
 use write as w;
 
+/// An error that can be returned when using `get_checked` or `get_checked_mut` to retrieve a
+/// reference to an element or slice.
+///
+/// The following traits provide these methods:
+/// * [`GetChecked`]
+/// * [`GetCheckedSliceIndex`]
+///
+/// # Causes:
+/// `IndexError` is thrown if the index or range is out of bounds and would have otherwise
+/// caused a panic had indexing been performed using [`core::ops::Index`] directly.
+///
+/// # Examples
+/// ```
+/// # use get_checked::GetChecked;
+/// let v = vec![1, 2, 3];
+/// if let Err(e) = v.get_checked(2..5) {
+///     println!("Index error: {}", e);
+/// }
+///
+/// # use get_checked::GetCheckedSliceIndex;
+/// let v = vec![1, 2, 3];
+/// if let Err(e) = (2..5).get_checked(&v) {
+///     println!("Index error: {}", e);
+/// }
+/// ```
+///
+/// [`GetChecked`]:           crate::GetChecked
+/// [`GetCheckedSliceIndex`]: crate::GetCheckedSliceIndex
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexError
 {
     pub(super) kind: IndexErrorKind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[non_exhaustive]
-
+#[derive(Debug, Clone, PartialEq, Eq)] #[non_exhaustive]
+/// Enum representing the kind of index error that occurred.
 pub enum IndexErrorKind
 {
+    /// Index is out of bounds.
+    /// * `0` - index of element.
+    /// * `1` - length of slice.
     Bounds(usize, usize),
+
+    /// Slice index start is after the end of the slice.
+    /// * `0` - start of slice.
+    /// * `1` - end of slice.
     Order(usize, usize),
 
-    // Slice Out of ranges errors:
+    /// Range start is after the end of the slice.
+    /// * `0` - start of slice.
+    /// * `1` - end of slice.
     StartRange(usize, usize),
+
+    /// Range end is before the start of the slice.
+    /// * `0` - start of slice.
+    /// * `1` - end end of slice.
     EndRange(usize, usize),
 
-    // Slice Overflow errors
+    /// Slice start is after [`usize::MAX`].
     StartOverflow(),
+
+    /// Slice end is at [`usize::MAX`].
     EndOverflow(),
 }
 
@@ -29,13 +71,14 @@ use IndexErrorKind::{Bounds, EndOverflow, EndRange, Order, StartOverflow, StartR
 
 impl IndexError
 {
+    /// Outputs the detailed cause of an index error.
     pub fn kind(&self) -> &IndexErrorKind
     {
         &self.kind
     }
 
     #[rustfmt::skip]
-    pub fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
     {
         match self.kind
         {

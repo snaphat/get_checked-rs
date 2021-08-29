@@ -1,13 +1,13 @@
 #![cfg_attr(feature = "no_std", no_std)]
 //! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for:
-//! - `[T]`
-//! - [`usize`]
-//! - [`Range`]
-//! - [`RangeTo`]
-//! - [`RangeFrom`]
-//! - [`RangeFull`]
-//! - [`RangeInclusive`]
-//! - [`RangeToInclusive`]
+//! * `[T]`
+//! * [`usize`]
+//! * [`Range`]
+//! * [`RangeTo`]
+//! * [`RangeFrom`]
+//! * [`RangeFull`]
+//! * [`RangeInclusive`]
+//! * [`RangeToInclusive`]
 //!
 //! These APIs provide similar functionality as [`get`] and [`get_mut`] but return a [`Result`]
 //! instead of an [`Option`].
@@ -19,8 +19,6 @@
 //!
 //! [`get_checked`]:      GetChecked::get_checked
 //! [`get_checked_mut`]:  GetChecked::get_checked_mut
-//! [`get_checked`]:      GetCheckedSliceIndex::get_checked
-//! [`get_checked_mut`]:  GetCheckedSliceIndex::get_checked_mut
 //! [`Range`]:            ops::Range
 //! [`RangeTo`]:          ops::RangeTo
 //! [`RangeFrom`]:        ops::RangeFrom
@@ -323,25 +321,31 @@ pub trait GetChecked<T>
     ///   that range, or [`Err`] containing a [`IndexError`] describing the error if out of
     ///   bounds.
     ///
+    /// # Errors
+    ///
+    /// If this function encounters any form of Error, an [`IndexError`], containing a variant of
+    /// type [`IndexErrorKind`] will be returned. Kind variants represent the type of index error
+    /// encountered. These are retrievable via the [`kind`] method of the returned error.
+    ///
+    /// [`kind`]: IndexError::kind
+    ///
     /// # Examples
     ///
     /// ```
-    /// use get_checked::GetChecked;
+    /// # use get_checked::GetChecked;
     ///
     /// let v = [10, 40, 30];
     /// assert_eq!(Ok(&40), v.get_checked(1));
     /// assert_eq!(Ok(&[10, 40][..]), v.get_checked(0..2));
     ///
-    /// assert!(v.get_checked(3).is_err());
     /// if let Err(e) = v.get_checked(3)
     /// {
-    ///     println!("{}", e);
+    ///     println!("Index error: {}", e);
     /// }
     ///
-    /// assert!(v.get_checked(0..4).is_err());
     /// if let Err(e) = v.get_checked(0..4)
     /// {
-    ///     println!("{}", e);
+    ///     println!("Index error: {}", e);
     /// }
     /// ```
     #[inline]
@@ -361,23 +365,28 @@ pub trait GetChecked<T>
     ///   that range, or [`Err`] containing a [`IndexError`] describing the error if out of
     ///   bounds.
     ///
+    /// # Errors
+    ///
+    /// If this function encounters any form of Error, an [`IndexError`], containing a variant of
+    /// type [`IndexErrorKind`] will be returned. Kind variants represent the type of index error
+    /// encountered. These are retrievable via the [`kind`] method of the returned error.
+    ///
+    /// [`kind`]: IndexError::kind
+    ///
     /// # Examples
     ///
     /// ```
-    /// use get_checked::GetChecked;
+    /// # use get_checked::GetChecked;
     ///
     /// let x = &mut [0, 1, 2];
-    ///
     /// if let Ok(elem) = x.get_checked_mut(1)
     /// {
     ///     *elem = 42;
     /// }
     ///
-    /// assert_eq!(x, &[0, 42, 2]);
-    /// assert!(x.get_checked_mut(3).is_err());
     /// if let Err(e) = x.get_checked_mut(3)
     /// {
-    ///     println!("{}", e);
+    ///     println!("Index error: {}", e);
     /// }
     /// ```
     #[inline]
