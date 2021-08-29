@@ -1,5 +1,6 @@
 #[cfg(test)]
-use super::{Error, GetChecked};
+use super::GetChecked;
+use crate::ErrorKind;
 
 // Immutable tests:
 
@@ -36,7 +37,7 @@ fn immut_index_error()
     ];
     let err = bytes.get_checked(16).unwrap_err();
 
-    assert_eq!(err, Error::IndexError(16, 16));
+    assert_eq!(*err.kind(), ErrorKind::Bounds(16, 16));
 }
 
 #[test]
@@ -191,7 +192,7 @@ fn immut_range_from_error()
     ];
 
     let err = bytes.get_checked(17..).unwrap_err();
-    assert_eq!(err, Error::SliceStartIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::StartRange(17, 16));
 }
 
 #[test]
@@ -203,7 +204,7 @@ fn immut_range_to_error()
     ];
 
     let err = bytes.get_checked(..17).unwrap_err();
-    assert_eq!(err, Error::SliceEndIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
 }
 
 #[test]
@@ -215,7 +216,7 @@ fn immut_range_to_inclusive_error()
     ];
 
     let err = bytes.get_checked(..=16).unwrap_err();
-    assert_eq!(err, Error::SliceEndIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
 }
 
 #[test]
@@ -227,7 +228,7 @@ fn immut_range_from_slice_error()
     ];
 
     let err = bytes.get_checked(17..5).unwrap_err();
-    assert_eq!(err, Error::SliceIndexOrderError(17, 5));
+    assert_eq!(*err.kind(), ErrorKind::Order(17, 5));
 }
 
 #[test]
@@ -239,7 +240,7 @@ fn immut_range_slice_inclusive_error()
     ];
 
     let err = bytes.get_checked(17..=4).unwrap_err();
-    assert_eq!(err, Error::SliceIndexOrderError(17, 5));
+    assert_eq!(*err.kind(), ErrorKind::Order(17, 5));
 }
 
 #[test]
@@ -251,7 +252,7 @@ fn immut_range_overflow_error()
     ];
 
     let err = bytes.get_checked(0..=usize::MAX).unwrap_err();
-    assert_eq!(err, Error::EndIndexOverflowError());
+    assert_eq!(*err.kind(), ErrorKind::EndOverflow());
 }
 
 // Mutable tests:
@@ -292,7 +293,7 @@ fn mut_index_error()
     let mut bytes2 = bytes.clone();
 
     let err = bytes2.get_checked_mut(16).unwrap_err();
-    assert_eq!(err, Error::IndexError(16, 16));
+    assert_eq!(*err.kind(), ErrorKind::Bounds(16, 16));
 }
 
 #[test]
@@ -460,7 +461,7 @@ fn mut_range_from_error()
     ];
 
     let err = bytes.get_checked_mut(17..).unwrap_err();
-    assert_eq!(err, Error::SliceStartIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::StartRange(17, 16));
 }
 
 #[test]
@@ -472,7 +473,7 @@ fn mut_range_to_error()
     ];
 
     let err = bytes.get_checked_mut(..17).unwrap_err();
-    assert_eq!(err, Error::SliceEndIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
 }
 
 #[test]
@@ -484,7 +485,7 @@ fn mut_range_to_inclusive_error()
     ];
 
     let err = bytes.get_checked_mut(..=16).unwrap_err();
-    assert_eq!(err, Error::SliceEndIndexLenError(17, 16));
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
 }
 
 #[test]
@@ -496,7 +497,7 @@ fn mut_range_slice_error()
     ];
 
     let err = bytes.get_checked_mut(17..5).unwrap_err();
-    assert_eq!(err, Error::SliceIndexOrderError(17, 5));
+    assert_eq!(*err.kind(), ErrorKind::Order(17, 5));
 }
 
 #[test]
@@ -508,7 +509,7 @@ fn mut_range_slice_inclusive_error()
     ];
 
     let err = bytes.get_checked_mut(17..=4).unwrap_err();
-    assert_eq!(err, Error::SliceIndexOrderError(17, 5));
+    assert_eq!(*err.kind(), ErrorKind::Order(17, 5));
 }
 
 #[test]
@@ -520,5 +521,5 @@ fn mut_range_overflow_error()
     ];
 
     let err = bytes.get_checked_mut(0..=usize::MAX).unwrap_err();
-    assert_eq!(err, Error::EndIndexOverflowError());
+    assert_eq!(*err.kind(), ErrorKind::EndOverflow());
 }

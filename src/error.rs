@@ -2,41 +2,63 @@ use core::fmt;
 
 use write as w;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum GetError
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IndexError
 {
-    IndexError(usize, usize),
-    SliceIndexOrderError(usize, usize),
-    SliceStartIndexLenError(usize, usize),
-    SliceEndIndexLenError(usize, usize),
-    StartIndexOverflowError(),
-    EndIndexOverflowError(),
+    pub(super) kind: IndexErrorKind,
 }
 
-use GetError::{
-    EndIndexOverflowError, IndexError, SliceEndIndexLenError, SliceIndexOrderError,
-    SliceStartIndexLenError, StartIndexOverflowError,
-};
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 
-impl fmt::Display for GetError
+pub enum IndexErrorKind
 {
-    #[rustfmt::skip]
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+    Bounds(usize, usize),
+    Order(usize, usize),
+
+    // Slice Out of ranges errors:
+    StartRange(usize, usize),
+    EndRange(usize, usize),
+
+    // Slice Overflow errors
+    StartOverflow(),
+    EndOverflow(),
+}
+
+use IndexErrorKind::{Bounds, EndOverflow, EndRange, Order, StartOverflow, StartRange};
+
+impl IndexError
+{
+    pub fn kind(&self) -> &IndexErrorKind
     {
-        match *self
+        &self.kind
+    }
+
+    #[rustfmt::skip]
+    pub fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+    {
+        match self.kind
         {
-            | IndexError(a, b)              => { w!(f, "index out of bounds: the len is {0} but the index is {1}", a, b) },
-            | SliceIndexOrderError(a, b)    => { w!(f, "slice index starts at {0} but ends at {1}", a, b) },
-            | SliceStartIndexLenError(a, b) => { w!(f, "range start index {0} out of range for slice of length {1}", a, b) },
-            | SliceEndIndexLenError(a, b)   => { w!(f, "range end index {0} out of range for slice of length {1}", a, b) },
-            | StartIndexOverflowError()     => { w!(f, "attempted to index slice from after maximum usize") },
-            | EndIndexOverflowError()       => { w!(f, "attempted to index slice up to maximum usize") },
+            | Bounds(a, b)     => { w!(f, "index out of bounds: the len is {0} but the index is {1}", a, b) },
+            | Order(a, b)      => { w!(f, "slice index starts at {0} but ends at {1}", a, b) },
+            | StartRange(a, b) => { w!(f, "range start index {0} out of range for slice of length {1}", a, b) },
+            | StartOverflow()  => { w!(f, "attempted to index slice from after maximum usize") },
+            | EndRange(a, b)   => { w!(f, "range end index {0} out of range for slice of length {1}", a, b) },
+            | EndOverflow()    => { w!(f, "attempted to index slice up to maximum usize") },
         }
     }
 }
 
+impl fmt::Display for IndexError
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
+        self.fmt(f)
+    }
+}
+
 #[cfg(feature = "no_std")]
-impl core_error::Error for GetError {}
+impl core_error::Error for IndexError {}
 
 #[cfg(not(feature = "no_std"))]
-impl std::error::Error for GetError {}
+impl std::error::Error for IndexError {}
