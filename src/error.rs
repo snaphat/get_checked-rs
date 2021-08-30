@@ -20,13 +20,15 @@ use write as w;
 /// ```
 /// # use get_checked::GetChecked;
 /// let v = vec![1, 2, 3];
-/// if let Err(e) = v.get_checked(2..5) {
+/// if let Err(e) = v.get_checked(2..5)
+/// {
 ///     println!("Index error: {}", e);
 /// }
 ///
 /// # use get_checked::GetCheckedSliceIndex;
 /// let v = vec![1, 2, 3];
-/// if let Err(e) = (2..5).get_checked(&v) {
+/// if let Err(e) = (2..5).get_checked(&v)
+/// {
 ///     println!("Index error: {}", e);
 /// }
 /// ```
@@ -39,7 +41,8 @@ pub struct IndexError
     pub(super) kind: IndexErrorKind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)] #[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 /// Enum representing the kind of index error that occurred. These represent the types of
 /// diffent types of [`panics`] that could occur if indexing was performed using [`core::ops::Index`].
 ///
