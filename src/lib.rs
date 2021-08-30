@@ -12,9 +12,9 @@
 //! These APIs provide similar functionality as [`get`] and [`get_mut`] but return a [`Result`]
 //! instead of an [`Option`].
 //!
-//! - If given a position, returns an [`Ok`] containing a reference to the element at that
+//! - If given a `usize`, returns an [`Ok`] containing a reference to the element at that
 //!   position or [`Err`] containing a [`IndexError`] describing the error if out of bounds.
-//! - If given a range, returns an [`Ok`] containing the subslice corresponding to that range,
+//! - If given a `range`, returns an [`Ok`] containing the subslice corresponding to that range,
 //!   or [`Err`] containing a [`IndexError`] describing the error if out of bounds.
 //!
 //! [`get_checked`]:      GetChecked::get_checked
@@ -34,7 +34,7 @@ mod error;
 
 pub use error::{IndexError, IndexErrorKind};
 
-/// Type definition of [`IndexError`].
+/// Type definition of `IndexError`.
 pub type Error = error::IndexError;
 /// Type definition of [`IndexErrorKind`].
 pub type ErrorKind = error::IndexErrorKind;
@@ -61,13 +61,83 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
     /// The output type returned by methods.
     type Output: ?Sized;
 
-    /// Returns a [`Result`] to a shared reference to the output at this location, if in
-    /// bounds.
-    fn get_checked(self, slice: &T) -> Result<&Self::Output, Error>;
+    /// Accepts a [`slice`] and returns a `Result` containing a reference to an element or
+    /// subslice corresponding to the index upon which the method is called.
+    ///
+    /// - If called on a `usize`, returns an `Ok` containing a reference to the element
+    ///   at that position or `Err` containing a `IndexError` describing the error if out of
+    ///   bounds.
+    /// - If called on a `range`, returns an `Ok` containing the subslice corresponding to
+    ///   that range, or `Err` containing a `IndexError` describing the error if out of bounds.
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters any form of Error, an `IndexError`, containing a variant of
+    /// type `IndexErrorKind` will be returned. Kind variants represent the type of index error
+    /// encountered. These are retrievable via the [`kind`] method of the returned error.
+    ///
+    /// [`kind`]: IndexError::kind
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use get_checked::GetCheckedSliceIndex;
+    ///
+    /// let v = [10, 40, 30];
+    /// assert_eq!(Ok(&40), 1.get_checked(&v));
+    /// assert_eq!(Ok(&[10, 40][..]), (0..2).get_checked(&v));
+    ///
+    /// if let Err(e) = 3.get_checked(&v)
+    /// {
+    ///     println!("Index error: {}", e);
+    /// }
+    ///
+    /// if let Err(e) = (2..4).get_checked(&v)
+    /// {
+    ///     println!("Index error: {}", e);
+    /// }
+    /// ```
+    fn get_checked(self, slice: &T) -> Result<&Self::Output, IndexError>;
 
-    /// Returns a [`Result`] to a mutable reference to the output at this location, if in
-    /// bounds.
-    fn get_checked_mut(self, slice: &mut T) -> Result<&mut Self::Output, Error>;
+    /// Accepts a mutable [`slice`] and returns a `Result` containing a mutable reference to an
+    /// element or subslice corresponding to the index upon which the method is called.
+    ///
+    /// - If called on a `usize`, returns an `Ok` containing a mutable reference to the element
+    ///   at that position or `Err` containing a `IndexError` describing the error if out of
+    ///   bounds.
+    /// - If called on a `range`, returns an `Ok` containing the mutable subslice corresponding to
+    ///   that range, or `Err` containing a `IndexError` describing the error if out of bounds.
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters any form of Error, an `IndexError`, containing a variant of
+    /// type [`IndexErrorKind`] will be returned. Kind variants represent the type of index error
+    /// encountered. These are retrievable via the [`kind`] method of the returned error.
+    ///
+    /// [`kind`]: IndexError::kind
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use get_checked::GetCheckedSliceIndex;
+    ///
+    /// let mut v = [0, 1, 2];
+    /// if let Ok(elem) = 1.get_checked_mut(&mut v)
+    /// {
+    ///     *elem = 42;
+    /// }
+    ///
+    /// if let Err(e) = 3.get_checked_mut(&mut v)
+    /// {
+    ///     println!("Index error: {}", e);
+    /// }
+    ///
+    /// if let Err(e) = (2..4).get_checked_mut(&mut v)
+    /// {
+    ///     println!("Index error: {}", e);
+    /// }
+    /// ```
+    fn get_checked_mut(self, slice: &mut T) -> Result<&mut Self::Output, IndexError>;
 }
 
 impl<T> GetCheckedSliceIndex<[T]> for usize
@@ -75,7 +145,7 @@ impl<T> GetCheckedSliceIndex<[T]> for usize
     type Output = T;
 
     #[inline] #[rustfmt::skip]
-    fn get_checked(self, slice: &[T]) -> Result<&T, Error>
+    fn get_checked(self, slice: &[T]) -> Result<&T, IndexError>
     {
         // SAFETY: `self` is checked to be in bounds.
         match self
@@ -86,7 +156,7 @@ impl<T> GetCheckedSliceIndex<[T]> for usize
     }
 
     #[inline] #[rustfmt::skip]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut T, Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut T, IndexError>
     {
         // SAFETY: `self` is checked to be in bounds.
         match self
@@ -102,7 +172,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
     type Output = [T];
 
     #[inline] #[rustfmt::skip]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         let len = slice.len();
         match self
@@ -114,7 +184,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
     }
 
     #[inline] #[rustfmt::skip]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         let len = slice.len();
         match self
@@ -131,7 +201,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
     type Output = [T];
 
     #[inline]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         let end = match self.end_bound()
         {
@@ -150,7 +220,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
     }
 
     #[inline]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         let end = match self.end_bound()
         {
@@ -174,7 +244,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFrom<usize>
     type Output = [T];
 
     #[inline]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         let start = match self.start_bound()
         {
@@ -193,7 +263,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFrom<usize>
     }
 
     #[inline]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         let start = match self.start_bound()
         {
@@ -217,13 +287,13 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFull
     type Output = [T];
 
     #[inline]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         Ok(slice)
     }
 
     #[inline]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         Ok(slice)
     }
@@ -234,7 +304,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeInclusive<usize>
     type Output = [T];
 
     #[inline]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         let start = match self.start_bound()
         {
@@ -261,7 +331,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeInclusive<usize>
     }
 
     #[inline]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         let start = match self.start_bound()
         {
@@ -293,13 +363,13 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeToInclusive<usize>
     type Output = [T];
 
     #[inline]
-    fn get_checked(self, slice: &[T]) -> Result<&[T], Error>
+    fn get_checked(self, slice: &[T]) -> Result<&[T], IndexError>
     {
         (0..=self.end).get_checked(slice)
     }
 
     #[inline]
-    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], Error>
+    fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut [T], IndexError>
     {
         (0..=self.end).get_checked_mut(slice)
     }
@@ -311,23 +381,24 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeToInclusive<usize>
 /// [`get_checked_mut`]: GetChecked::get_checked_mut
 pub trait GetChecked<T>
 {
-    /// Returns a [`Result`] containing a reference to an element or subslice depending
-    /// on the type of index.
+    /// Accepts a [`usize`] or [`range`] and returns a `Result` containing a reference to an
+    /// element or subslice corresponding to the index.
     ///
-    /// - If given a position, returns an [`Ok`] containing a reference to the element
-    ///   at that position or [`Err`] containing a [`IndexError`] describing the error if out of
+    /// - If given a `usize`, returns an `Ok` containing a reference to the element
+    ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If given a range, returns an [`Ok`] containing the subslice corresponding to
-    ///   that range, or [`Err`] containing a [`IndexError`] describing the error if out of
+    /// - If given a `range`, returns an `Ok` containing the subslice corresponding to
+    ///   that range, or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
     ///
     /// # Errors
     ///
-    /// If this function encounters any form of Error, an [`IndexError`], containing a variant of
+    /// If this function encounters any form of Error, an `IndexError`, containing a variant of
     /// type [`IndexErrorKind`] will be returned. Kind variants represent the type of index error
     /// encountered. These are retrievable via the [`kind`] method of the returned error.
     ///
-    /// [`kind`]: IndexError::kind
+    /// [`range`]: ops::Range
+    /// [`kind`]:  IndexError::kind
     ///
     /// # Examples
     ///
@@ -343,54 +414,60 @@ pub trait GetChecked<T>
     ///     println!("Index error: {}", e);
     /// }
     ///
-    /// if let Err(e) = v.get_checked(0..4)
+    /// if let Err(e) = v.get_checked(2..4)
     /// {
     ///     println!("Index error: {}", e);
     /// }
     /// ```
     #[inline]
-    fn get_checked<I>(&self, index: I) -> Result<&I::Output, Error>
+    fn get_checked<I>(&self, index: I) -> Result<&I::Output, IndexError>
     where I: GetCheckedSliceIndex<Self>
     {
         index.get_checked(self)
     }
 
-    /// Returns a [`Result`] containing a mutable reference to an element or subslice depending
-    /// on the type of index.
+    /// Accepts a `usize` or `range` and returns a `Result` containing a mutable reference
+    /// to an element or subslice subslice corresponding to the index.
     ///
-    /// - If given a position, returns an [`Ok`] containing a mutable reference to the element
-    ///   at that position or [`Err`] containing a [`IndexError`] describing the error if out of
+    /// - If given a `usize`, returns an `Ok` containing a mutable reference to the element
+    ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If given a range, returns an [`Ok`] containing the mutable subslice corresponding to
-    ///   that range, or [`Err`] containing a [`IndexError`] describing the error if out of
+    /// - If given a `range`, returns an `Ok` containing the mutable subslice corresponding to
+    ///   that range, or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
     ///
     /// # Errors
     ///
-    /// If this function encounters any form of Error, an [`IndexError`], containing a variant of
+    /// If this function encounters any form of Error, an `IndexError`, containing a variant of
     /// type [`IndexErrorKind`] will be returned. Kind variants represent the type of index error
     /// encountered. These are retrievable via the [`kind`] method of the returned error.
     ///
-    /// [`kind`]: IndexError::kind
+    /// [`range`]: ops::Range
+    /// [`kind`]:  IndexError::kind
     ///
     /// # Examples
     ///
     /// ```
     /// # use get_checked::GetChecked;
     ///
-    /// let x = &mut [0, 1, 2];
-    /// if let Ok(elem) = x.get_checked_mut(1)
+    /// let v = &mut [0, 1, 2];
+    /// if let Ok(elem) = v.get_checked_mut(1)
     /// {
     ///     *elem = 42;
     /// }
     ///
-    /// if let Err(e) = x.get_checked_mut(3)
+    /// if let Err(e) = v.get_checked_mut(3)
+    /// {
+    ///     println!("Index error: {}", e);
+    /// }
+    ///
+    /// if let Err(e) = v.get_checked_mut(2..4)
     /// {
     ///     println!("Index error: {}", e);
     /// }
     /// ```
     #[inline]
-    fn get_checked_mut<I>(&mut self, index: I) -> Result<&mut I::Output, Error>
+    fn get_checked_mut<I>(&mut self, index: I) -> Result<&mut I::Output, IndexError>
     where I: GetCheckedSliceIndex<Self>
     {
         index.get_checked_mut(self)

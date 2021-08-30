@@ -11,7 +11,10 @@ use write as w;
 ///
 /// # Causes:
 /// `IndexError` is thrown if the index or range is out of bounds and would have otherwise
-/// caused a panic had indexing been performed using [`core::ops::Index`] directly.
+/// caused a [`panic`] had indexing been performed using [`core::ops::Index`] directly.
+///
+/// A [`print`] of a given error will match the error message that panic would have produced for
+/// the same index or range.
 ///
 /// # Examples
 /// ```
@@ -37,7 +40,10 @@ pub struct IndexError
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)] #[non_exhaustive]
-/// Enum representing the kind of index error that occurred.
+/// Enum representing the kind of index error that occurred. These represent the types of
+/// diffent types of [`panics`] that could occur if indexing was performed using [`core::ops::Index`].
+///
+/// [`panics`]: panic
 pub enum IndexErrorKind
 {
     /// Index is out of bounds.
