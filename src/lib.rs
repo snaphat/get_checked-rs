@@ -1,4 +1,5 @@
 #![cfg_attr(feature = "no_std", no_std)]
+#![warn(missing_docs)]
 //! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for:
 //! * `[T]`
 //! * [`usize`]
@@ -34,7 +35,7 @@ mod error;
 
 pub use error::{IndexError, IndexErrorKind};
 
-/// Type definition of `IndexError`.
+/// Type definition of [`IndexError`].
 pub type Error = error::IndexError;
 /// Type definition of [`IndexErrorKind`].
 pub type ErrorKind = error::IndexErrorKind;
@@ -45,17 +46,11 @@ use error::IndexErrorKind::{Bounds, EndOverflow, EndRange, Order, StartOverflow,
 mod tests;
 
 /// A helper trait used for adding [`get_checked`] and [`get_checked_mut`] indexing operations
-/// to [`usize`], [`Range`], [`RangeTo`], [`RangeFrom`], [`RangeFull`], [`RangeInclusive`],
-/// and [`RangeToInclusive`].
+/// to `usize`, `Range`, `RangeTo`, `RangeFrom`, `RangeFull`, `RangeInclusive`,
+/// and `RangeToInclusive`.
 ///
 /// [`get_checked`]:      GetCheckedSliceIndex::get_checked
 /// [`get_checked_mut`]:  GetCheckedSliceIndex::get_checked_mut
-/// [`Range`]:            ops::Range
-/// [`RangeTo`]:          ops::RangeTo
-/// [`RangeFrom`]:        ops::RangeFrom
-/// [`RangeFull`]:        ops::RangeFull
-/// [`RangeInclusive`]:   ops::RangeInclusive
-/// [`RangeToInclusive`]: ops::RangeToInclusive
 pub trait GetCheckedSliceIndex<T: ?Sized>
 {
     /// The output type returned by methods.
@@ -67,8 +62,9 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
     /// - If called on a `usize`, returns an `Ok` containing a reference to the element
     ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If called on a `range`, returns an `Ok` containing the subslice corresponding to
-    ///   that range, or `Err` containing a `IndexError` describing the error if out of bounds.
+    /// - If called on a `range`, returns an `Ok` containing a reference to the subslice
+    ///   corresponding to that range, or `Err` containing a `IndexError` describing the error
+    ///   if out of bounds.
     ///
     /// # Errors
     ///
@@ -105,8 +101,9 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
     /// - If called on a `usize`, returns an `Ok` containing a mutable reference to the element
     ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If called on a `range`, returns an `Ok` containing the mutable subslice corresponding to
-    ///   that range, or `Err` containing a `IndexError` describing the error if out of bounds.
+    /// - If called on a `range`, returns an `Ok` containing a reference to the mutable subslice
+    ///   corresponding to that range, or `Err` containing a `IndexError` describing the error if
+    ///   out of bounds.
     ///
     /// # Errors
     ///
@@ -142,12 +139,12 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
 
 impl<T> GetCheckedSliceIndex<[T]> for usize
 {
+    /// Element output type.
     type Output = T;
 
     #[inline] #[rustfmt::skip]
     fn get_checked(self, slice: &[T]) -> Result<&T, IndexError>
     {
-        // SAFETY: `self` is checked to be in bounds.
         match self
         {
             | _ if self < slice.len() => unsafe { Ok(&*slice.get_unchecked(self)) },
@@ -158,7 +155,6 @@ impl<T> GetCheckedSliceIndex<[T]> for usize
     #[inline] #[rustfmt::skip]
     fn get_checked_mut(self, slice: &mut [T]) -> Result<&mut T, IndexError>
     {
-        // SAFETY: `self` is checked to be in bounds.
         match self
         {
             | _ if self < slice.len() => unsafe { Ok(&mut *slice.get_unchecked_mut(self)) },
@@ -196,6 +192,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
     }
 }
 
+/// Implements `get_checked` and `get_checked_mut` for `RangeTo`.
 impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
 {
     type Output = [T];
@@ -239,6 +236,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
     }
 }
 
+/// Implements `get_checked` and `get_checked_mut` for `RangeFrom`.
 impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFrom<usize>
 {
     type Output = [T];
@@ -375,7 +373,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeToInclusive<usize>
     }
 }
 
-/// Trait adding [`get_checked`] and [`get_checked_mut`] Indexing implementations for `[T]`.
+/// Trait adding [`get_checked`] and [`get_checked_mut`] Indexing implementations to `[T]`.
 ///
 /// [`get_checked`]: GetChecked::get_checked
 /// [`get_checked_mut`]: GetChecked::get_checked_mut
@@ -387,9 +385,9 @@ pub trait GetChecked<T>
     /// - If given a `usize`, returns an `Ok` containing a reference to the element
     ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If given a `range`, returns an `Ok` containing the subslice corresponding to
-    ///   that range, or `Err` containing a `IndexError` describing the error if out of
-    ///   bounds.
+    /// - If given a `range`, returns an `Ok` containing a reference to the subslice
+    ///   corresponding to that range, or `Err` containing a `IndexError` describing the error
+    ///   if out of bounds.
     ///
     /// # Errors
     ///
@@ -432,9 +430,9 @@ pub trait GetChecked<T>
     /// - If given a `usize`, returns an `Ok` containing a mutable reference to the element
     ///   at that position or `Err` containing a `IndexError` describing the error if out of
     ///   bounds.
-    /// - If given a `range`, returns an `Ok` containing the mutable subslice corresponding to
-    ///   that range, or `Err` containing a `IndexError` describing the error if out of
-    ///   bounds.
+    /// - If given a `range`, returns an `Ok` containing a reference to the mutable subslice
+    ///   corresponding to that range, or `Err` containing a `IndexError` describing the error
+    ///   if out of bounds.
     ///
     /// # Errors
     ///
