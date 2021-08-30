@@ -53,7 +53,7 @@ pub enum IndexErrorKind
     /// * `1` - length of slice.
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     /// "index out of bounds: the len is {0} but the index is {1}"
     Bounds(usize, usize),
 
@@ -62,7 +62,7 @@ pub enum IndexErrorKind
     /// * `1` - end of slice.
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     ///"slice index starts at {0} but ends at {1}"
     /// ```
     Order(usize, usize),
@@ -72,7 +72,7 @@ pub enum IndexErrorKind
     /// * `1` - length of slice.
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     /// "range start index {0} out of range for slice of length {1}"
     /// ```
     StartRange(usize, usize),
@@ -82,7 +82,7 @@ pub enum IndexErrorKind
     /// * `1` - length of slice.
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     /// "range end index {0} out of range for slice of length {1}"
     /// ```
     EndRange(usize, usize),
@@ -90,14 +90,14 @@ pub enum IndexErrorKind
     /// Slice start is after [`usize::MAX`].
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     /// "attempted to index slice from after maximum usize"
     StartOverflow(),
 
     /// Slice end is at [`usize::MAX`].
     ///
     /// Builtin error message:
-    /// ```
+    /// ```text
     /// "attempted to index slice up to maximum usize"
     EndOverflow(),
 }
