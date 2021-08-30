@@ -14,7 +14,6 @@ information and handle errors in a more ergonomic way.
 # Examples
 Error details can be printed to provide context to the user.
 ```rust
-# use get_checked::GetChecked;
 let v = [1, 2, 3];
 
 if let Err(e) = v.get_checked(1..4)
@@ -26,7 +25,6 @@ if let Err(e) = v.get_checked(1..4)
 
 Error details can be extracted to provide custom error messages in external code.
 ```rust
-# use get_checked::{GetChecked, IndexErrorKind};
 let v = [1, 2, 3];
 
 if let Err(e) = v.get_checked(4)
