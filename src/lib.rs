@@ -1,31 +1,89 @@
 #![cfg_attr(feature = "no_std", no_std)]
 #![warn(missing_docs)]
-//! This crate provides [`get_checked`] and [`get_checked_mut`] Indexing implementations for:
-//! * `[T]`
-//! * [`usize`]
-//! * [`Range`]
-//! * [`RangeTo`]
-//! * [`RangeFrom`]
-//! * [`RangeFull`]
-//! * [`RangeInclusive`]
-//! * [`RangeToInclusive`]
+//! This crate provides [`GetChecked`] and [`GetCheckedSliceIndex`] traits which provide
+//! `get_checked` and `get_checked_mut` methods for [`array`] and [`slice`] types.
 //!
-//! These APIs provide similar functionality as [`get`] and [`get_mut`] but return a [`Result`]
-//! instead of an [`Option`].
+//! These methods provide similar functionality as [`get`] and [`get_mut`] but return a
+//! [`Result`] instead of an [`Option`]. This allows users to retrieve detailed error
+//! information and handle errors in a more ergonomic way.
 //!
-//! - If given a `usize`, returns an [`Ok`] containing a reference to the element at that
-//!   position or [`Err`] containing a [`IndexError`] describing the error if out of bounds.
-//! - If given a `range`, returns an [`Ok`] containing the subslice corresponding to that range,
-//!   or [`Err`] containing a [`IndexError`] describing the error if out of bounds.
+//! # Examples:
+//! Error details can be printed to provide context to the user.
+//! ```
+//! # use get_checked::GetChecked;
+//! let v = [1, 2, 3];
 //!
-//! [`get_checked`]:      GetChecked::get_checked
-//! [`get_checked_mut`]:  GetChecked::get_checked_mut
-//! [`Range`]:            ops::Range
-//! [`RangeTo`]:          ops::RangeTo
-//! [`RangeFrom`]:        ops::RangeFrom
-//! [`RangeFull`]:        ops::RangeFull
-//! [`RangeInclusive`]:   ops::RangeInclusive
-//! [`RangeToInclusive`]: ops::RangeToInclusive
+//! if let Err(e) = v.get_checked(1..4)
+//! {
+//!     println!("{}", e);
+//!     assert_eq!(e.to_string(), "range end index 4 out of range for slice of length 3");
+//! }
+//! ```
+//!
+//! Error details can be extracted to provide custom error messages in external code.
+//! ```
+//! # use get_checked::{GetChecked, IndexErrorKind};
+//! let v = [1, 2, 3];
+//!
+//! if let Err(e) = v.get_checked(4)
+//! {
+//!     match e.kind()
+//!     {
+//!         | IndexErrorKind::Bounds(index, len) => (/*..*/),
+//!         | IndexErrorKind::Order(start, end) => (/*..*/),
+//!         | IndexErrorKind::StartRange(start, len) => (/*..*/),
+//!         | IndexErrorKind::EndRange(start, len) => (/*..*/),
+//!         | IndexErrorKind::StartOverflow() => (/*..*/),
+//!         | IndexErrorKind::EndOverflow() => (/*..*/),
+//!         | _ => (/*..*/),
+//!     };
+//! }
+//! ```
+//! Error details can be wrapped using the [`From`] trait.
+//! ```
+//! use std::{error::Error, fmt};
+//!
+//! use get_checked::{GetChecked, IndexError};
+//!
+//! #[derive(Debug)]
+//! struct MyError
+//! {
+//!     details: String,
+//! }
+//!
+//! impl fmt::Display for MyError
+//! {
+//!     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+//!     {
+//!         write!(f, "My Error: {}", self.details)
+//!     }
+//! }
+//!
+//! // Wrap error:
+//! impl From<IndexError> for MyError
+//! {
+//!     fn from(err: IndexError) -> MyError
+//!     {
+//!         MyError { details: err.to_string() }
+//!     }
+//! }
+//!
+//! // Example usage:
+//! fn foo() -> Result<(), MyError>
+//! {
+//!     let v = [1, 2, 3];
+//!     v.get_checked(4)?;
+//!     Ok(())
+//! }
+//!
+//! fn main()
+//! {
+//!     assert_eq!(
+//!         foo().unwrap_err().to_string(),
+//!         "My Error: index out of bounds: the len is 4 but the index is 3"
+//!     );
+//! }
+//! ```
 //! [`get`]:              slice::get
 //! [`get_mut`]:          slice::get_mut
 
@@ -78,7 +136,6 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
     ///
     /// ```
     /// # use get_checked::GetCheckedSliceIndex;
-    ///
     /// let v = [10, 40, 30];
     /// assert_eq!(Ok(&40), 1.get_checked(&v));
     /// assert_eq!(Ok(&[10, 40][..]), (0..2).get_checked(&v));
@@ -117,7 +174,6 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
     ///
     /// ```
     /// # use get_checked::GetCheckedSliceIndex;
-    ///
     /// let mut v = [0, 1, 2];
     /// if let Ok(elem) = 1.get_checked_mut(&mut v)
     /// {
@@ -139,7 +195,6 @@ pub trait GetCheckedSliceIndex<T: ?Sized>
 
 impl<T> GetCheckedSliceIndex<[T]> for usize
 {
-    /// Element output type.
     type Output = T;
 
     #[inline] #[rustfmt::skip]
@@ -174,7 +229,7 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
         match self
         {
             | _ if self.start > self.end => Err(Error { kind: Order(self.start, self.end) }),
-            | _ if self.end > len => Err(Error { kind: Order(self.end, len) }),
+            | _ if self.end > len => Err(Error { kind: EndRange(self.end, len) }),
             | _ => unsafe { Ok(&*slice.get_unchecked(self)) },
         }
     }
@@ -186,13 +241,12 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::Range<usize>
         match self
         {
             | _ if self.start > self.end => Err(Error { kind: Order(self.start, self.end) }),
-            | _ if self.end > len => Err(Error { kind: Order(self.end, len) }),
+            | _ if self.end > len => Err(Error { kind: EndRange(self.end, len) }),
             | _ => unsafe { Ok(&mut *slice.get_unchecked_mut(self)) },
         }
     }
 }
 
-/// Implements `get_checked` and `get_checked_mut` for `RangeTo`.
 impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
 {
     type Output = [T];
@@ -236,7 +290,6 @@ impl<T> GetCheckedSliceIndex<[T]> for ops::RangeTo<usize>
     }
 }
 
-/// Implements `get_checked` and `get_checked_mut` for `RangeFrom`.
 impl<T> GetCheckedSliceIndex<[T]> for ops::RangeFrom<usize>
 {
     type Output = [T];
@@ -402,7 +455,6 @@ pub trait GetChecked<T>
     ///
     /// ```
     /// # use get_checked::GetChecked;
-    ///
     /// let v = [10, 40, 30];
     /// assert_eq!(Ok(&40), v.get_checked(1));
     /// assert_eq!(Ok(&[10, 40][..]), v.get_checked(0..2));
@@ -447,7 +499,6 @@ pub trait GetChecked<T>
     ///
     /// ```
     /// # use get_checked::GetChecked;
-    ///
     /// let v = &mut [0, 1, 2];
     /// if let Ok(elem) = v.get_checked_mut(1)
     /// {

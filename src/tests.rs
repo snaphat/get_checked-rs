@@ -184,6 +184,18 @@ fn immut_range_to_inclusive()
 }
 
 #[test]
+fn immut_range_error()
+{
+    let bytes = [
+        0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5, 0x3E,
+        0x1F,
+    ];
+
+    let err = bytes.get_checked(1..17).unwrap_err();
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
+}
+
+#[test]
 fn immut_range_from_error()
 {
     let bytes = [
@@ -450,6 +462,19 @@ fn mut_range_to_inclusive()
     let ret = bytes2.get_checked_mut(..=5).unwrap();
     assert_eq!(ret.len(), 6);
     assert_eq!(ret, &bytes[..=5]);
+}
+
+#[test]
+fn mut_range_error()
+{
+    let bytes = [
+        0xA0, 0x11, 0xB2, 0xD3, 0x0F4, 0x35, 0x66, 0x17, 0x53, 0x65, 0xDA, 0xCB, 0x4C, 0xD5, 0x3E,
+        0x1F,
+    ];
+    let mut bytes2 = bytes.clone();
+
+    let err = bytes2.get_checked_mut(1..17).unwrap_err();
+    assert_eq!(*err.kind(), ErrorKind::EndRange(17, 16));
 }
 
 #[test]
