@@ -63,7 +63,7 @@ pub enum IndexErrorKind
     ///
     /// Builtin error message:
     /// ```text
-    ///"slice index starts at {0} but ends at {1}"
+    /// "slice index starts at {0} but ends at {1}"
     /// ```
     Order(usize, usize),
 
